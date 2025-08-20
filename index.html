@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>نظام رفع تقارير الإخلاء</title>
+  <style>
+    body { font-family: 'Cairo', Tahoma, sans-serif; background: #e6f4ec; margin:0; }
+    header { background:#006c35; color:white; padding:15px; text-align:center; }
+    header img { height:50px; margin-left:10px; vertical-align:middle; }
+    .container { max-width:750px; margin:20px auto; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:right; }
+    label { display:block; margin-top:10px; font-weight:bold; }
+    select, input, textarea, button { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:6px; }
+    button { background:#006c35; color:white; cursor:pointer; }
+    button:hover { background:#004d27; }
+    #status { margin-top:15px; font-weight:bold; }
+    .error { color:red; }
+    .success { color:green; }
+    .loading { color:#ff9800; font-weight:bold; }
+    .back-btn { margin-top:20px; background:#555; }
+    .back-btn:hover { background:#333; }
+
+    /* تنسيقات القائمة المخصصة */
+    .dropdown { position: relative; width: 100%; }
+    .dropdown-toggle { padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff; cursor:pointer; }
+    .dropdown-menu { 
+      display:none; 
+      position:absolute; 
+      top:100%; right:0; left:0; 
+      background:#fff; 
+      border:1px solid #ccc; 
+      border-radius:6px; 
+      max-height:250px; 
+      overflow-y:auto; 
+      z-index:1000; 
+    }
+    .dropdown-menu input { 
+      width:95%; 
+      margin:5px auto; 
+      display:block; 
+      padding:6px; 
+      border:1px solid #ccc; 
+      border-radius:4px; 
+    }
+    .dropdown-item { padding:8px 10px; cursor:pointer; }
+    .dropdown-item:hover { background:#f1f1f1; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://www.moe.gov.sa/_layouts/15/MOE.Web/_images/logo.png" alt="شعار وزارة التعليم">
+    <h2>الإدارة العامة للتعليم بمنطقة عسير - السلامة المدرسية - نظام رفع تقارير الإخلاء</h2>
+  </header>
+
+  <div class="container">
+    <h3>مرحباً بك 👋</h3>
+
+    <label>المدينة:</label>
+    <select id="cityFilter"></select>
+
+    <label>النوع:</label>
+    <select id="typeFilter"></select>
+
+    <label>المدرسة:</label>
+    <div class="dropdown">
+      <div class="dropdown-toggle" id="schoolDropdown">اختر المدرسة</div>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <input type="text" id="schoolSearch" placeholder="🔍 ابحث عن مدرسة">
+        <div id="schoolList"></div>
+      </div>
+    </div>
+
+    <div id="schoolData" style="display:none;">
+      <h3>بيانات المدرسة</h3>
+      <p><b>اسم المدرسة:</b> <span id="schoolName"></span></p>
+      <p><b>المدينة:</b> <span id="schoolCity"></span></p>
+
+      <label>النوع:</label>
+      <input type="text" id="typeInput" readonly>
+
+      <label>عدد الطلاب:</label>
+      <input type="number" id="students">
+
+      <label>عدد المنسوبين:</label>
+      <input type="number" id="staff">
+
+      <label>اسم المنسق:</label>
+      <input type="text" id="coordinator">
+
+      <label>الكادر:</label>
+      <select id="kader">
+        <option value="تعليمي">تعليمي</option>
+        <option value="إداري">إداري</option>
+      </select>
+
+      <label>تاريخ التنفيذ:</label>
+      <input type="date" id="executionDate">
+
+      <label>ملاحظات:</label>
+      <textarea id="notes"></textarea>
+
+      <label>رفع تقرير PDF:</label>
+      <input type="file" id="fileInput" accept="application/pdf">
+
+      <label><input type="checkbox" id="confirmData"> أتعهد بصحة البيانات المدخلة</label>
+
+      <button onclick="upload()">حفظ ورفع التقرير</button>
+    </div>
+
+    <p id="status"></p>
+
+    <!-- زر العودة -->
+    <button class="back-btn" onclick="goHome()">⬅️ العودة لادخال بيانات جديدة</button>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxUTKycoHzYDdyT8I-N07RWpl6C3R7jPuWsbVJkL5FAV8yfLzk_8yadUfxUpCZhX1vz/exec";
+    let schools = [];
+    let filteredSchools = [];
+
+    async function loadSchools() {
+      document.getElementById("status").innerHTML = "<span class='loading'>⏳ جاري تحميل البيانات...</span>";
+      const res = await fetch(API_URL + "?action=getSchools");
+      schools = await res.json();
+      loadFilters();
+      document.getElementById("status").innerHTML = "";
+    }
+
+    function loadFilters() {
+      const cities = [...new Set(schools.map(s => s[0]))];
+      const types = [...new Set(schools.map(s => s[2]))];
+      document.getElementById("cityFilter").innerHTML = "<option disabled selected>اختر المدينة</option>" + cities.map(c => `<option>${c}</option>`).join("");
+      document.getElementById("typeFilter").innerHTML = "<option disabled selected>اختر النوع</option>" + types.map(t => `<option>${t}</option>`).join("");
+      document.getElementById("cityFilter").addEventListener("change", updateSchools);
+      document.getElementById("typeFilter").addEventListener("change", updateSchools);
+    }
+
+    function updateSchools() {
+      const city = document.getElementById("cityFilter").value;
+      const type = document.getElementById("typeFilter").value;
+      filteredSchools = schools.filter(s => s[0] === city && s[2] === type);
+      renderSchoolList(filteredSchools);
+    }
+
+    function renderSchoolList(list) {
+      const container = document.getElementById("schoolList");
+      container.innerHTML = "";
+      list.forEach(s => {
+        const div = document.createElement("div");
+        div.className = "dropdown-item";
+        div.textContent = s[1];
+        div.onclick = () => selectSchool(s);
+        container.appendChild(div);
+      });
+    }
+
+    function selectSchool(selected) {
+      document.getElementById("schoolDropdown").textContent = selected[1];
+      document.getElementById("dropdownMenu").style.display = "none";
+
+      if (selected[8] === "تم التنفيذ") {
+        document.getElementById("status").innerHTML = "<span class='success'>✅ تم رفع التقرير مسبقاً، شكراً لكم.</span>";
+        document.getElementById("schoolData").style.display = "none";
+      } else {
+        document.getElementById("status").innerHTML = "";
+        document.getElementById("schoolData").style.display = "block";
+        document.getElementById("schoolName").textContent = selected[1];
+        document.getElementById("schoolCity").textContent = selected[0];
+        document.getElementById("typeInput").value = selected[2];
+        document.getElementById("students").value = selected[3];
+        document.getElementById("staff").value = selected[4];
+        document.getElementById("coordinator").value = selected[5];
+        document.getElementById("kader").value = selected[6] || "تعليمي";
+        document.getElementById("executionDate").value = selected[7] || "";
+        document.getElementById("notes").value = selected[9] || "";
+      }
+    }
+
+    document.getElementById("schoolDropdown").addEventListener("click", () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+      document.getElementById("schoolSearch").value = "";
+      renderSchoolList(filteredSchools);
+    });
+
+    document.getElementById("schoolSearch").addEventListener("input", () => {
+      const query = document.getElementById("schoolSearch").value.toLowerCase();
+      const filtered = filteredSchools.filter(s => s[1].toLowerCase().includes(query));
+      renderSchoolList(filtered);
+    });
+
+    async function upload() {
+      if (!document.getElementById("confirmData").checked) {
+        alert("يجب تأكيد صحة البيانات قبل الحفظ");
+        return;
+      }
+
+      const schoolName = document.getElementById("schoolDropdown").textContent;
+      if (schoolName === "اختر المدرسة") { alert("اختر مدرسة"); return; }
+
+      const students = document.getElementById("students").value;
+      const staff = document.getElementById("staff").value;
+      const coordinator = document.getElementById("coordinator").value;
+      const kader = document.getElementById("kader").value;
+      const executionDate = document.getElementById("executionDate").value;
+      const notes = document.getElementById("notes").value;
+      const file = document.getElementById("fileInput").files[0];
+
+      if (!file) { alert("اختر ملف PDF"); return; }
+
+      document.getElementById("status").innerHTML = "<span class='loading'>⏳ جاري رفع التقرير...</span>";
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result.split(",")[1];
+        const payload = { 
+          action: "uploadFile", 
+          schoolName, students, staff, coordinator, kader, executionDate, notes, base64Data 
+        };
+        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+        const result = await res.json();
+
+        if (result.status === "already_done") {
+          document.getElementById("status").innerHTML = "<span class='success'>✅ تم رفع التقرير مسبقاً، شكراً لكم.</span>";
+        } else if (result.status === "success") {
+          document.getElementById("status").innerHTML = "<span class='success'>✅ شكرًا لك! تم الحفظ ورفع التقرير بنجاح. <a href='" + result.url + "' target='_blank'>عرض التقرير</a></span>";
+          document.getElementById("schoolData").style.display = "none";
+        } else {
+          document.getElementById("status").innerHTML = "<span class='error'>❌ حدث خطأ أثناء الحفظ</span>";
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function goHome() { location.reload(); }
+
+    loadSchools();
+  </script>
+</body>
+</html>
