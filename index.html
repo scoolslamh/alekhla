@@ -35,7 +35,8 @@
 
     /* ======= الحاوية ======= */
     .container {
-      max-width: 95%;
+      width: 100%;
+      max-width: 700px;   /* الحد الأقصى للعرض على الكمبيوتر */
       margin: 15px auto;
       background: white;
       padding: 20px;
@@ -52,7 +53,7 @@
       font-size: 14px;
     }
 
-    select, input, textarea, button {
+    select, input, textarea, button, a.btn {
       width: 100%;
       padding: 12px;
       margin-top: 5px;
@@ -60,11 +61,12 @@
       border-radius: 10px;
       font-size: 14px;
       box-sizing: border-box;
+      text-align: center;
     }
 
     textarea { resize: vertical; min-height: 80px; }
 
-    button {
+    button, a.btn {
       background: #006c35;
       color: white;
       font-size: 15px;
@@ -72,8 +74,10 @@
       cursor: pointer;
       transition: 0.3s;
       border: none;
+      text-decoration: none;
+      display: inline-block;
     }
-    button:hover, button:active {
+    button:hover, a.btn:hover, button:active, a.btn:active {
       background: #004d27;
       transform: scale(0.98);
     }
@@ -133,9 +137,12 @@
       header h2 {
         font-size: 14px;
       }
-      button {
+      button, a.btn {
         font-size: 14px;
         padding: 10px;
+      }
+      .container {
+        max-width: 95%; /* على الجوال ترجع كاملة العرض */
       }
     }
   </style>
@@ -148,6 +155,9 @@
 
   <div class="container">
     <h3>مرحباً بك 👋</h3>
+
+    <!-- زر نموذج التقرير -->
+    <a class="btn" href="https://drive.google.com/file/d/1zoJJHJPXgnQZL073nOOaIE30QI0xit-8/view?usp=sharing" target="_blank">📄 نموذج التقرير</a>
 
     <label>المدينة:</label>
     <select id="cityFilter"></select>
