@@ -23,9 +23,7 @@
       gap: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    header img {
-      height: 45px;
-    }
+    header img { height: 45px; }
     header h2 {
       font-size: 16px;
       line-height: 1.4;
@@ -36,7 +34,7 @@
     /* ======= الحاوية ======= */
     .container {
       width: 100%;
-      max-width: 700px;   /* الحد الأقصى للعرض على الكمبيوتر */
+      max-width: 700px;
       margin: 15px auto;
       background: white;
       padding: 20px;
@@ -88,12 +86,6 @@
     }
     .back-btn:hover { background:#333; }
 
-    /* ======= التنبيهات ======= */
-    #status { margin-top: 15px; font-weight: bold; font-size: 14px; }
-    .error { color: red; }
-    .success { color: green; }
-    .loading { color:#ff9800; }
-
     /* ======= القائمة المخصصة ======= */
     .dropdown { position: relative; width: 100%; }
     .dropdown-toggle {
@@ -128,22 +120,45 @@
       cursor: pointer;
       font-size: 14px;
     }
-    .dropdown-item:hover {
-      background: #f1f1f1;
+    .dropdown-item:hover { background: #f1f1f1; }
+
+    /* ======= التنبيهات ======= */
+    #status { margin-top: 15px; font-weight: bold; font-size: 14px; }
+    .error { color: red; }
+    .success { color: green; }
+    .loading { color:#ff9800; }
+
+    /* ======= الصفحة التمهيدية ======= */
+    #introPage {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    #introContent {
+      background: #fff;
+      padding: 25px;
+      border-radius: 14px;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      line-height: 1.8;
+    }
+    #introContent h3 { margin-top:0; color:#006c35; }
+    #introContent button {
+      margin-top: 15px;
+      width: auto;
+      padding: 12px 25px;
     }
 
     /* ======= دعم الموبايل ======= */
     @media (max-width: 600px) {
-      header h2 {
-        font-size: 14px;
-      }
-      button, a.btn {
-        font-size: 14px;
-        padding: 10px;
-      }
-      .container {
-        max-width: 95%; /* على الجوال ترجع كاملة العرض */
-      }
+      header h2 { font-size: 14px; }
+      button, a.btn { font-size: 14px; padding: 10px; }
+      .container { max-width: 95%; }
     }
   </style>
 </head>
@@ -153,10 +168,27 @@
     <h2>الإدارة العامة للتعليم بمنطقة عسير - السلامة المدرسية - نظام رفع تقارير الإخلاء</h2>
   </header>
 
-  <div class="container">
+  <!-- ======= الصفحة التمهيدية ======= -->
+  <div id="introPage">
+    <div id="introContent">
+      <h3>مرحباً بكم منسقي ومنسقات الأمن والسلامة</h3>
+      <p>في صفحة <b>رفع تقرير تنفيذ فرضية الإخلاء في المنشآت التعليمية</b></p>
+      <p>يرجى اتباع التعليمات التالية قبل البدء:</p>
+      <ol style="text-align:right; padding-right:20px;">
+        <li>تحميل نموذج تقرير تنفيذ الفرضية من خلال هذا الموقع، ثم تعبئته واعتماده بتوقيع مدير/ة المدرسة وختمها.</li>
+        <li>إعادة رفع النموذج عبر حقل رفع الملف بصيغة PDF فقط.</li>
+        <li>اختيار <b>المدينة</b> و<b>النوع</b> لتظهر قائمة المدارس، مع إمكانية البحث للوصول السريع.</li>
+        <li>التأكد من صحة اسم المدرسة قبل إدخال البيانات.</li>
+        <li>رفع التقرير خلال المدة المحددة في تعميم تنفيذ الفرضية.</li>
+      </ol>
+      <button onclick="startApp()">ابدأ الآن</button>
+    </div>
+  </div>
+
+  <!-- ======= الصفحة الرئيسية ======= -->
+  <div class="container" id="mainApp" style="display:none;">
     <h3>مرحباً بك 👋</h3>
 
-    <!-- زر نموذج التقرير -->
     <a class="btn" href="https://drive.google.com/file/d/1zoJJHJPXgnQZL073nOOaIE30QI0xit-8/view?usp=sharing" target="_blank">📄 نموذج التقرير</a>
 
     <label>المدينة:</label>
@@ -219,6 +251,12 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxUTKycoHzYDdyT8I-N07RWpl6C3R7jPuWsbVJkL5FAV8yfLzk_8yadUfxUpCZhX1vz/exec";
     let schools = [];
     let filteredSchools = [];
+
+    // ====== إظهار الصفحة الرئيسية بعد المقدمة ======
+    function startApp() {
+      document.getElementById("introPage").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+    }
 
     async function loadSchools() {
       document.getElementById("status").innerHTML = "<span class='loading'>⏳ جاري تحميل البيانات...</span>";
