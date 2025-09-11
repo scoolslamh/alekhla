@@ -128,6 +128,14 @@
     .success { color: green; }
     .loading { color:#ff9800; }
 
+    /* ✅ ملاحظة أسفل حقل رفع الملف */
+    .note {
+      font-size: 13px;
+      color: #d32f2f;
+      margin-top: 5px;
+      text-align: right;
+    }
+
     /* ======= الصفحة التمهيدية ======= */
     #introPage {
       position: fixed;
@@ -189,7 +197,7 @@
   <div class="container" id="mainApp" style="display:none;">
     <h3>مرحباً بك 👋</h3>
 
-    <a class="btn" href="https://drive.google.com/file/d/1zoJJHJPXgnQZL073nOOaIE30QI0xit-8/view?usp=sharing" target="_blank">📄 نموذج التقرير</a>
+    <a class="btn" href="https://drive.google.com/file/d/1zoJJHJPXgnQZL073nOOaIE30QI0xit-8/view?usp=sharing" target="_blank">📄  نموذج فارغ يتم تحميله وتعبئته واعادة رفعه</a>
 
     <label>المدينة:</label>
     <select id="cityFilter"></select>
@@ -237,6 +245,7 @@
 
       <label>رفع تقرير PDF:</label>
       <input type="file" id="fileInput" accept="application/pdf">
+      <p class="note">📌 مسموح فقط برفع ملفات PDF، وألا يتجاوز الحجم 10 ميغابايت.</p>
 
       <label><input type="checkbox" id="confirmData"> أتعهد بصحة البيانات المدخلة</label>
 
@@ -252,7 +261,6 @@
     let schools = [];
     let filteredSchools = [];
 
-    // ====== إظهار الصفحة الرئيسية بعد المقدمة ======
     function startApp() {
       document.getElementById("introPage").style.display = "none";
       document.getElementById("mainApp").style.display = "block";
@@ -346,7 +354,19 @@
       const notes = document.getElementById("notes").value;
       const file = document.getElementById("fileInput").files[0];
 
-      if (!file) { alert("اختر ملف PDF"); return; }
+      // ✅ التحقق من الملف
+      if (!file) { 
+        alert("اختر ملف PDF"); 
+        return; 
+      }
+      if (file.type !== "application/pdf") {
+        alert("❌ مسموح فقط برفع ملفات PDF.");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert("❌ حجم الملف أكبر من 10 ميغابايت، يرجى تقليصه.");
+        return;
+      }
 
       document.getElementById("status").innerHTML = "<span class='loading'>⏳ جاري رفع التقرير...</span>";
 
