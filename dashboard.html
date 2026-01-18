@@ -1,260 +1,395 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>لوحة متابعة تقارير الإخلاء</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- مكتبة Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <style>
-    body { font-family: 'Cairo', Tahoma, sans-serif; background:#f4f6f9; margin:0; }
-    header { background:#006c35; color:white; padding:15px; text-align:center; display:flex; align-items:center; justify-content:center; gap:15px; }
-    header img { height:50px; }
-    .container { max-width:1200px; margin:20px auto; padding:20px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة متابعة تقارير الإخلاء</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-    /* الكروت */
-    .cards { display:grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap:20px; }
-    .card {
-      background:white; padding:20px; border-radius:12px;
-      box-shadow:0 4px 8px rgba(0,0,0,0.1); text-align:center;
-    }
-    .card h2 { margin:0; font-size:2em; color:#006c35; }
-    .card p { margin:5px 0 0; color:#555; }
+    <style>
+        :root {
+            --primary-color: #006c35;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --transition: all 0.3s ease;
+        }
 
-    /* الفلاتر */
-    .filters { margin:20px 0; display:flex; justify-content:flex-start; gap:10px; align-items:center; }
-    select, button {
-      padding:10px; border-radius:6px; border:1px solid #ccc; cursor:pointer;
-    }
-    button { background:#006c35; color:white; }
-    button:hover { background:#004d27; }
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            color: var(--text-main);
+            line-height: 1.6;
+        }
 
-    /* الجداول */
-    table {
-      width:100%; border-collapse:collapse; background:white;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    }
-    th, td { border:1px solid #ddd; padding:10px; text-align:center; }
-    th { background:#006c35; color:white; }
-    tr:nth-child(even) { background:#f9f9f9; }
+        /* الهيدر */
+        header { 
+            background: var(--primary-color); 
+            color: white; 
+            padding: 20px 5%; 
+            text-align: center; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        header img { height: 60px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        header h2 { margin: 0; font-weight: 700; font-size: 1.5rem; }
 
-    /* NEW: جعل الجداول في صناديق قابلة للتمرير */
-    .table-container {
-      max-height: 350px; /* ارتفاع ثابت */
-      overflow-y: auto;  /* شريط تمرير عمودي */
-      margin-top: 10px;
-      border-radius: 8px;
-    }
+        .container { max-width: 1300px; margin: 30px auto; padding: 0 20px; }
 
-    /* الرسوم البيانية */
-    .charts { 
-      display:grid; 
-      grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); 
-      gap:20px; 
-      margin-top:30px; 
-      justify-content:center;
-    }
-    .chart-box {
-      background:white; 
-      padding:15px; 
-      border-radius:12px; 
-      box-shadow:0 2px 6px rgba(0,0,0,0.1); 
-      display:flex; 
-      justify-content:center; 
-      align-items:center;
-    }
-    canvas { 
-      max-width:400px; 
-      max-height:300px; 
-      width:100%; 
-      height:auto; 
-    }
-  </style>
+        /* الكروت الإحصائية */
+        .cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+            text-align: center;
+            transition: var(--transition);
+            border-bottom: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .card.total { border-bottom-color: #3498db; }
+        .card.executed { border-bottom-color: var(--secondary-color); }
+        .card.pending { border-bottom-color: var(--danger-color); }
+        .card.rate { border-bottom-color: #f1c40f; }
+
+        .card i { font-size: 2rem; margin-bottom: 15px; opacity: 0.2; position: absolute; left: 15px; top: 15px; }
+        .card h2 { margin: 10px 0; font-size: 2.2em; color: var(--primary-color); font-weight: 700; }
+        .card p { margin: 0; color: #636e72; font-weight: 600; font-size: 1.1rem; }
+
+        /* منطقة الفلاتر والأزرار */
+        .controls-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .filter-group { display: flex; align-items: center; gap: 15px; }
+        
+        select {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            font-family: 'Cairo';
+            outline: none;
+            min-width: 200px;
+            transition: var(--transition);
+        }
+        
+        select:focus { border-color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Cairo';
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-export-exec { background: var(--primary-color); color: white; }
+        .btn-export-exec:hover { background: #004d27; opacity: 0.9; }
+        
+        .btn-export-not { background: #fff; color: var(--danger-color); border: 1.5px solid var(--danger-color); }
+        .btn-export-not:hover { background: var(--danger-color); color: white; }
+
+        /* الرسوم البيانية */
+        .charts { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 40px; 
+        }
+        
+        @media (max-width: 600px) { .charts { grid-template-columns: 1fr; } }
+
+        .chart-box {
+            background: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            min-height: 350px;
+        }
+
+        /* الجداول */
+        h3 { 
+            margin: 30px 0 15px; 
+            font-size: 1.3rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            color: var(--primary-color);
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        
+        th { 
+            background: #f8f9fa; 
+            color: var(--primary-color); 
+            padding: 15px; 
+            font-weight: 700; 
+            position: sticky; 
+            top: 0; 
+            border-bottom: 2px solid #eee;
+        }
+        
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; font-size: 0.95rem; }
+        tr:hover { background-color: #fdfdfd; }
+
+        /* تخصيص السكرول بار */
+        .table-container::-webkit-scrollbar { width: 6px; }
+        .table-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+    </style>
 </head>
 <body>
-  <header>
-    <img src="assets/logo.png" alt="شعار وزارة التعليم">
-    <h2>لوحة متابعة تقارير الإخلاء</h2>
-  </header>
 
-  <div class="container">
-    <!-- الكروت -->
-    <div class="cards">
-      <div class="card">
-        <h2 id="totalSchools">0</h2>
-        <p>إجمالي المدارس</p>
-      </div>
-      <div class="card">
-        <h2 id="executedSchools">0</h2>
-        <p>مدارس منفذة</p>
-      </div>
-      <div class="card">
-        <h2 id="notExecutedSchools">0</h2>
-        <p>مدارس غير منفذة</p>
-      </div>
-      <div class="card">
-        <h2 id="completionRate">0%</h2>
-        <p>نسبة الإنجاز</p>
-      </div>
+    <header>
+        <div class="header-title">
+            <img src="assets/logo.png" alt="وزارة التعليم" onerror="this.style.display='none'">
+            <h2>لوحة متابعة تقارير الإخلاء</h2>
+        </div>
+        <div id="currentDate" style="font-size: 0.9rem; opacity: 0.8;"></div>
+    </header>
+
+    <div class="container">
+        <div class="cards">
+            <div class="card total">
+                <i class="fas fa-school"></i>
+                <p>إجمالي المدارس</p>
+                <h2 id="totalSchools">0</h2>
+            </div>
+            <div class="card executed">
+                <i class="fas fa-check-circle"></i>
+                <p>مدارس منفذة</p>
+                <h2 id="executedSchools">0</h2>
+            </div>
+            <div class="card pending">
+                <i class="fas fa-clock"></i>
+                <p>غير منفذة</p>
+                <h2 id="notExecutedSchools">0</h2>
+            </div>
+            <div class="card rate">
+                <i class="fas fa-chart-line"></i>
+                <p>نسبة الإنجاز</p>
+                <h2 id="completionRate">0%</h2>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> تصفية حسب المدينة:</label>
+                <select id="cityFilter">
+                    <option value="all">كل المدن</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button class="btn-export-exec" onclick="exportExcel('executed')">
+                    <i class="fas fa-file-excel"></i> تصدير المنفذة
+                </button>
+                <button class="btn-export-not" onclick="exportExcel('notExecuted')">
+                    <i class="fas fa-file-download"></i> تصدير غير المنفذة
+                </button>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-box"><canvas id="pieChart"></canvas></div>
+            <div class="chart-box"><canvas id="barChart"></canvas></div>
+        </div>
+
+        <div class="data-tables">
+            <h3><i class="fas fa-list-check"></i> المدارس المنفذة</h3>
+            <div class="table-container">
+                <table id="executedTable">
+                    <thead><tr><th>المدينة</th><th>اسم المدرسة</th><th>النوع</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <h3><i class="fas fa-exclamation-triangle"></i> المدارس غير المنفذة</h3>
+            <div class="table-container">
+                <table id="notExecutedTable">
+                    <thead><tr><th>المدينة</th><th>اسم المدرسة</th><th>النوع</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- الفلاتر -->
-    <div class="filters">
-      <label>اختر المدينة:</label>
-      <select id="cityFilter">
-        <option value="all">الكل</option>
-      </select>
-    </div>
+    <script>
+        // الرابط والبيانات (نفس منطقك الأصلي)
+        const API_URL = "https://script.google.com/macros/s/AKfycbzrQw6bOyh7Wm8Av6YCwwooDd27ghda5YEenkjfl94jg3F6VHoldxM4JbCVCcU7yNaK/exec";
+        let allData = [];
+        let pieChart, barChart;
 
-    <!-- الأزرار -->
-    <div style="margin:15px 0;">
-      <button onclick="exportExcel('executed')">📥 تصدير المدارس المنفذة</button>
-      <button onclick="exportExcel('notExecuted')">📥 تصدير المدارس غير المنفذة</button>
-    </div>
+        // عرض التاريخ الحالي
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    <!-- الرسوم البيانية -->
-    <div class="charts">
-      <div class="chart-box"><canvas id="pieChart"></canvas></div>
-      <div class="chart-box"><canvas id="barChart"></canvas></div>
-    </div>
-
-    <!-- الجداول -->
-    <h3>المدارس المنفذة</h3>
-    <div class="table-container">
-      <table id="executedTable">
-        <thead><tr><th>المدينة</th><th>اسم المدرسة</th><th>النوع</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <h3>المدارس غير المنفذة</h3>
-    <div class="table-container">
-      <table id="notExecutedTable">
-        <thead><tr><th>المدينة</th><th>اسم المدرسة</th><th>النوع</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzrQw6bOyh7Wm8Av6YCwwooDd27ghda5YEenkjfl94jg3F6VHoldxM4JbCVCcU7yNaK/exec";
-    let allData = [];
-    let pieChart, barChart;
-
-    async function loadStats() {
-      try {
-        const res = await fetch(API_URL + "?action=getSchools");
-        allData = await res.json();
-        updateDashboard();
-        loadCities();
-      } catch (err) {
-        console.error("خطأ في تحميل البيانات", err);
-        alert("تعذر تحميل البيانات من الخادم.");
-      }
-    }
-
-    function loadCities() {
-      const cities = [...new Set(allData.map(s => s[0]))];
-      const select = document.getElementById("cityFilter");
-      select.innerHTML = `<option value="all">الكل</option>` + cities.map(c => `<option>${c}</option>`).join("");
-      select.addEventListener("change", updateDashboard);
-    }
-
-    function updateDashboard() {
-      const city = document.getElementById("cityFilter").value;
-      const filtered = city === "all" ? allData : allData.filter(s => s[0] === city);
-
-      const total = filtered.length;
-      const executed = filtered.filter(s => s[8] === "تم التنفيذ");
-      const notExecuted = filtered.filter(s => s[8] !== "تم التنفيذ");
-
-      document.getElementById("totalSchools").textContent = total;
-      document.getElementById("executedSchools").textContent = executed.length;
-      document.getElementById("notExecutedSchools").textContent = notExecuted.length;
-      document.getElementById("completionRate").textContent = total > 0 ? Math.round((executed.length/total)*100) + "%" : "0%";
-
-      renderTable("executedTable", executed);
-      renderTable("notExecutedTable", notExecuted);
-      renderCharts(executed.length, notExecuted.length, city);
-    }
-
-    function renderTable(id, rows) {
-      const tbody = document.getElementById(id).querySelector("tbody");
-      tbody.innerHTML = "";
-      rows.forEach(r => {
-        tbody.innerHTML += `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`;
-      });
-    }
-
-    function renderCharts(executedCount, notExecutedCount, city) {
-      if (pieChart) pieChart.destroy();
-      pieChart = new Chart(document.getElementById("pieChart"), {
-        type: "pie",
-        data: {
-          labels: ["منفذة", "غير منفذة"],
-          datasets: [{
-            data: [executedCount, notExecutedCount],
-            backgroundColor: ["#4CAF50", "#F44336"]
-          }]
-        },
-        options: { responsive: true, plugins: { title: { display: true, text: "نسبة التنفيذ" } } }
-      });
-
-      if (barChart) barChart.destroy();
-      const cityData = {};
-      (city === "all" ? allData : allData.filter(s => s[0] === city)).forEach(s => {
-        if (!cityData[s[0]]) cityData[s[0]] = { executed: 0, notExecuted: 0 };
-        if (s[8] === "تم التنفيذ") cityData[s[0]].executed++;
-        else cityData[s[0]].notExecuted++;
-      });
-
-      barChart = new Chart(document.getElementById("barChart"), {
-        type: "bar",
-        data: {
-          labels: Object.keys(cityData),
-          datasets: [
-            { label: "منفذة", data: Object.values(cityData).map(d => d.executed), backgroundColor: "#4CAF50" },
-            { label: "غير منفذة", data: Object.values(cityData).map(d => d.notExecuted), backgroundColor: "#F44336" }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: { title: { display: true, text: "التنفيذ حسب المدينة" } },
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    // ✅ التصدير باستخدام SheetJS
-    async function exportExcel(type) {
-      try {
-        const rows = type === "executed"
-          ? allData.filter(s => s[8] === "تم التنفيذ")
-          : allData.filter(s => s[8] !== "تم التنفيذ");
-
-        if (rows.length === 0) {
-          alert("لا توجد بيانات للتصدير.");
-          return;
+        async function loadStats() {
+            try {
+                const res = await fetch(API_URL + "?action=getSchools");
+                allData = await res.json();
+                updateDashboard();
+                loadCities();
+            } catch (err) {
+                console.error("خطأ في تحميل البيانات", err);
+                alert("تعذر تحميل البيانات من الخادم.");
+            }
         }
 
-        const headers = ["المدينة", "اسم المدرسة", "النوع", "حالة التنفيذ"];
-        const data = rows.map(r => [r[0], r[1], r[2], r[8]]);
-        const worksheetData = [headers, ...data];
+        function loadCities() {
+            const cities = [...new Set(allData.map(s => s[0]))];
+            const select = document.getElementById("cityFilter");
+            select.innerHTML = `<option value="all">الكل</option>` + cities.map(c => `<option>${c}</option>`).join("");
+            select.addEventListener("change", updateDashboard);
+        }
 
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Schools");
+        function updateDashboard() {
+            const city = document.getElementById("cityFilter").value;
+            const filtered = city === "all" ? allData : allData.filter(s => s[0] === city);
 
-        const fileName = type === "executed" ? "مدارس_منفذة.xlsx" : "مدارس_غير_منفذة.xlsx";
-        XLSX.writeFile(wb, fileName);
+            const total = filtered.length;
+            const executed = filtered.filter(s => s[8] === "تم التنفيذ");
+            const notExecuted = filtered.filter(s => s[8] !== "تم التنفيذ");
 
-      } catch (err) {
-        console.error("خطأ في التصدير", err);
-        alert("تعذر إنشاء ملف Excel.");
-      }
-    }
+            document.getElementById("totalSchools").textContent = total;
+            document.getElementById("executedSchools").textContent = executed.length;
+            document.getElementById("notExecutedSchools").textContent = notExecuted.length;
+            document.getElementById("completionRate").textContent = total > 0 ? Math.round((executed.length/total)*100) + "%" : "0%";
 
-    loadStats();
-  </script>
+            renderTable("executedTable", executed);
+            renderTable("notExecutedTable", notExecuted);
+            renderCharts(executed.length, notExecuted.length, city);
+        }
+
+        function renderTable(id, rows) {
+            const tbody = document.getElementById(id).querySelector("tbody");
+            tbody.innerHTML = "";
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCharts(executedCount, notExecutedCount, city) {
+            Chart.defaults.font.family = 'Cairo';
+            
+            if (pieChart) pieChart.destroy();
+            pieChart = new Chart(document.getElementById("pieChart"), {
+                type: "doughnut", // تغيير النوع ليكون عصرياً أكثر
+                data: {
+                    labels: ["منفذة", "غير منفذة"],
+                    datasets: [{
+                        data: [executedCount, notExecutedCount],
+                        backgroundColor: ["#2ecc71", "#e74c3c"],
+                        hoverOffset: 10
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        title: { display: true, text: "حالة التنفيذ الإجمالية", font: {size: 16, weight: 'bold'} },
+                        legend: { position: 'bottom' }
+                    } 
+                }
+            });
+
+            if (barChart) barChart.destroy();
+            const cityData = {};
+            (city === "all" ? allData : allData.filter(s => s[0] === city)).forEach(s => {
+                if (!cityData[s[0]]) cityData[s[0]] = { executed: 0, notExecuted: 0 };
+                if (s[8] === "تم التنفيذ") cityData[s[0]].executed++;
+                else cityData[s[0]].notExecuted++;
+            });
+
+            barChart = new Chart(document.getElementById("barChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(cityData),
+                    datasets: [
+                        { label: "منفذة", data: Object.values(cityData).map(d => d.executed), backgroundColor: "#2ecc71" },
+                        { label: "غير منفذة", data: Object.values(cityData).map(d => d.notExecuted), backgroundColor: "#e74c3c" }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: "التنفيذ حسب المدينة", font: {size: 16, weight: 'bold'} } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        async function exportExcel(type) {
+            try {
+                const rows = type === "executed"
+                    ? allData.filter(s => s[8] === "تم التنفيذ")
+                    : allData.filter(s => s[8] !== "تم التنفيذ");
+
+                if (rows.length === 0) { alert("لا توجد بيانات للتصدير."); return; }
+
+                const headers = ["المدينة", "اسم المدرسة", "النوع", "حالة التنفيذ"];
+                const data = rows.map(r => [r[0], r[1], r[2], r[8]]);
+                const worksheetData = [headers, ...data];
+
+                const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "المدارس");
+                XLSX.writeFile(wb, type === "executed" ? "مدارس_منفذة.xlsx" : "مدارس_غير_منفذة.xlsx");
+            } catch (err) { alert("تعذر إنشاء ملف Excel."); }
+        }
+
+        loadStats();
+    </script>
 </body>
 </html>
