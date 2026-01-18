@@ -30,38 +30,38 @@
             line-height: 1.6;
         }
 
-        /* ======= الهيدر ======= */
+        /* ======= الهيدر المعدل ======= */
         header {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
-            padding: 20px 15px;
+            padding: 30px 15px 40px; /* زيادة البادينج السفلي */
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
         }
 
         header img { 
-            height: 60px; 
+            height: 70px; 
             margin-bottom: 12px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         header h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1.2rem;
+            font-weight: 700;
             margin: 0;
             max-width: 90%;
         }
 
-        /* ======= الحاوية المركزية ======= */
+        /* ======= الحاوية (تم إصلاح التداخل هنا) ======= */
         .container {
             width: 92%;
             max-width: 650px;
-            margin: -30px auto 40px;
+            margin: 20px auto 40px; /* تم تغيير -30px إلى 20px موجبة */
             background: var(--white);
             padding: 30px 25px;
             border-radius: 20px;
@@ -77,7 +77,7 @@
         h3 { 
             color: var(--primary-color);
             border-right: 4px solid var(--accent-color);
-            padding-right: 10px;
+            padding-right: 12px;
             margin-bottom: 25px;
             font-size: 1.3rem;
         }
@@ -136,8 +136,6 @@
             box-shadow: 0 6px 15px rgba(0, 108, 53, 0.3);
         }
 
-        .btn:active { transform: scale(0.98); }
-
         .btn-outline {
             background: transparent;
             color: var(--primary-color);
@@ -171,6 +169,7 @@
             border-bottom: 1px solid #eee;
         }
         .dropdown-item:hover { background: #f8fefb; color: var(--primary-color); }
+        
         #schoolSearch {
             width: 90%; margin: 10px auto; display: block;
             border-radius: 8px; border: 1px solid #ddd;
@@ -208,23 +207,12 @@
             color: #555;
             font-size: 0.95rem;
         }
-        #introContent li { margin-bottom: 10px; }
-
-        /* ======= تفاصيل المدرسة المختارة ======= */
-        .school-info-card {
-            background: #fcfcfc;
-            border: 1px dashed #2ecc71;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-        }
-        .school-info-card p { margin: 5px 0; font-size: 14px; }
 
         /* التعديل للموبايل */
         @media (max-width: 480px) {
-            header h2 { font-size: 0.95rem; }
-            .container { padding: 20px 15px; }
-            h3 { font-size: 1.1rem; }
+            header h2 { font-size: 1rem; }
+            .container { padding: 25px 15px; width: 94%; }
+            h3 { font-size: 1.15rem; }
         }
 
         .note {
@@ -342,7 +330,6 @@
     </div>
 
     <script>
-        // الـ JavaScript يبقى كما هو تماماً لضمان عمل الوظائف
         const API_URL = "https://script.google.com/macros/s/AKfycbxUTKycoHzYDdyT8I-N07RWpl6C3R7jPuWsbVJkL5FAV8yfLzk_8yadUfxUpCZhX1vz/exec";
         let schools = [];
         let filteredSchools = [];
@@ -455,13 +442,13 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const base64Data = e.target.result.split(",")[1];
-                const payload = { 
-                    action: "uploadFile", 
-                    schoolName, students, staff, coordinator, 
-                    kader: document.getElementById("kader").value, 
-                    executionDate, 
-                    notes: document.getElementById("notes").value, 
-                    base64Data 
+                const payload = { 
+                    action: "uploadFile", 
+                    schoolName, students, staff, coordinator, 
+                    kader: document.getElementById("kader").value, 
+                    executionDate, 
+                    notes: document.getElementById("notes").value, 
+                    base64Data 
                 };
 
                 try {
